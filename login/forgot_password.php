@@ -17,19 +17,27 @@ $message = ""; // Variabel untuk pesan
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
 
-    // Cek apakah email ada di database
-    $sql = "SELECT * FROM users WHERE email = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        // Jika email terdaftar, arahkan ke reset_password.php
-        header("Location: reset_password.php?email=" . urlencode($email));
-        exit();
+    // Validasi format email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Format email tidak valid. Harap masukkan email yang benar"; // Pesan kesalahan format email
+    } elseif (substr($email, -10) !== "@gmail.com") {
+        // Memastikan email berakhiran "@gmail.com"
+        $message = "Format email tidak valid. Harap masukkan email yang benar";
     } else {
-        $message = "Email not registered."; // Simpan pesan
+        // Cek apakah email ada di database
+        $sql = "SELECT * FROM users WHERE email = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            // Jika email terdaftar, arahkan ke reset_password.php
+            header("Location: reset_password.php?email=" . urlencode($email));
+            exit();
+        } else {
+            $message = "Email not registered."; // Simpan pesan
+        }
     }
 }
 
